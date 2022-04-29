@@ -14,7 +14,7 @@ mess = ""
 #TODO: Add your token and your comport
 #Please check the comport in the device manager
 THINGS_BOARD_ACCESS_TOKEN = "xzaopr67XcyIyuoY3DWV"
-bbc_port = "COM3"
+bbc_port = "COM4"
 if len(bbc_port) > 0:
     ser = serial.Serial(port=bbc_port, baudrate=115200)
 
@@ -22,12 +22,13 @@ def processData(data):
     data = data.replace("!", "")
     data = data.replace("#", "")
     splitData = data.split(":")
-    print(splitData)
     #TODO: Add your source code to publish data to the server
     if splitData[1] == "TEMP":
         client.publish('v1/devices/me/telemetry', json.dumps({"temperature": splitData[2]}), 1)
+        print({"temperature": splitData[2]})
     else:
         client.publish('v1/devices/me/telemetry', json.dumps({"light": splitData[2]}), 1)
+        print({"light": splitData[2]})
    
 
 def readSerial():
@@ -57,11 +58,11 @@ def recv_message(client, userdata, message):
     
     try:
         jsonobj = json.loads(message.payload)
-        if jsonobj['method'] == "setLED":
-            temp_data['value'] = jsonobj['params']
+        if jsonobj['method'] == "setValueLED":
+            temp_data['valueLED'] = jsonobj['params']
             client.publish('v1/devices/me/attributes', json.dumps(temp_data), 1)
-        if jsonobj['method'] == "setFAN":
-            temp_data['value'] = jsonobj['params']
+        if jsonobj['method'] == "setValueFAN":
+            temp_data['valueFAN'] = jsonobj['params']
             client.publish('v1/devices/me/attributes', json.dumps(temp_data), 1)
     except:
         pass
@@ -92,4 +93,5 @@ while True:
 
     if len(bbc_port) >  0:
         readSerial()
+        client.on_message = recv_message
     time.sleep(1)
